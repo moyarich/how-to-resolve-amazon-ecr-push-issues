@@ -1,0 +1,6 @@
+Rule ID,Resource ID,Compliance,Exception Reason,Rule Level,Rule Info
+"AwsSolutions-IAM4","main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource","Suppressed","[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole] AWS managed policies are permitted for demo purposes","Error","The IAM user, role, or group uses AWS managed policies."
+"AwsSolutions-IAM4","main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource","Suppressed","[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole] AWS managed policies are permitted for demo purposes","Error","The IAM user, role, or group uses AWS managed policies."
+"AwsSolutions-IAM5","main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource","Compliant","N/A","Error","The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission."
+"AwsSolutions-EC23","main/PrepareMoyaDataLambdV3FnV1/SecurityGroup/Resource","Compliant","N/A","Error","The Security Group allows for 0.0.0.0/0 or ::/0 inbound access."
+"AwsSolutions-EC27","main/PrepareMoyaDataLambdV3FnV1/SecurityGroup/Resource","Compliant","N/A","Error","The Security Group does not have a description."

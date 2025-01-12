@@ -1,0 +1,40 @@
+{
+  "version": "39.0.0",
+  "files": {
+    "68cf14416a6983185187a7df0c337528e2abaa37f79565ab7664bccfedd194ce": {
+      "source": {
+        "path": "MoyaTestStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "241533140414-us-east-2": {
+          "bucketName": "cdk-hnb659fds-assets-241533140414-us-east-2",
+          "objectKey": "68cf14416a6983185187a7df0c337528e2abaa37f79565ab7664bccfedd194ce.json",
+          "region": "us-east-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::241533140414:role/cdk-hnb659fds-file-publishing-role-241533140414-us-east-2"
+        }
+      }
+    }
+  },
+  "dockerImages": {
+    "c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165": {
+      "source": {
+        "directory": "asset.c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165",
+        "dockerBuildArgs": {
+          "provenance": "false",
+          "sbom": "false"
+        },
+        "dockerFile": "Dockerfile",
+        "platform": "linux/arm64"
+      },
+      "destinations": {
+        "241533140414-us-east-2": {
+          "repositoryName": "cdk-hnb659fds-container-assets-241533140414-us-east-2",
+          "imageTag": "c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165",
+          "region": "us-east-2",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::241533140414:role/cdk-hnb659fds-image-publishing-role-241533140414-us-east-2"
+        }
+      }
+    }
+  }
+}

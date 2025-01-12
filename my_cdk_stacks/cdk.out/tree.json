@@ -1,0 +1,294 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "main": {
+        "id": "main",
+        "path": "main",
+        "children": {
+          "Vpc": {
+            "id": "Vpc",
+            "path": "main/Vpc",
+            "children": {
+              "PublicSharedSubnet1": {
+                "id": "PublicSharedSubnet1",
+                "path": "main/Vpc/PublicSharedSubnet1",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.175.1"
+                }
+              },
+              "PublicSharedSubnet2": {
+                "id": "PublicSharedSubnet2",
+                "path": "main/Vpc/PublicSharedSubnet2",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.175.1"
+                }
+              },
+              "PrivateSharedSubnet1": {
+                "id": "PrivateSharedSubnet1",
+                "path": "main/Vpc/PrivateSharedSubnet1",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.175.1"
+                }
+              },
+              "PrivateSharedSubnet2": {
+                "id": "PrivateSharedSubnet2",
+                "path": "main/Vpc/PrivateSharedSubnet2",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.Resource",
+                  "version": "2.175.1"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.Resource",
+              "version": "2.175.1"
+            }
+          },
+          "PrepareMoyaDataLambdV3FnV1": {
+            "id": "PrepareMoyaDataLambdV3FnV1",
+            "path": "main/PrepareMoyaDataLambdV3FnV1",
+            "children": {
+              "ServiceRole": {
+                "id": "ServiceRole",
+                "path": "main/PrepareMoyaDataLambdV3FnV1/ServiceRole",
+                "children": {
+                  "ImportServiceRole": {
+                    "id": "ImportServiceRole",
+                    "path": "main/PrepareMoyaDataLambdV3FnV1/ServiceRole/ImportServiceRole",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.Resource",
+                      "version": "2.175.1"
+                    }
+                  },
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                      "aws:cdk:cloudformation:props": {
+                        "assumeRolePolicyDocument": {
+                          "Statement": [
+                            {
+                              "Action": "sts:AssumeRole",
+                              "Effect": "Allow",
+                              "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                              }
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "managedPolicyArns": [
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                              ]
+                            ]
+                          },
+                          {
+                            "Fn::Join": [
+                              "",
+                              [
+                                "arn:",
+                                {
+                                  "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                      "version": "2.175.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Role",
+                  "version": "2.175.1"
+                }
+              },
+              "AssetImage": {
+                "id": "AssetImage",
+                "path": "main/PrepareMoyaDataLambdV3FnV1/AssetImage",
+                "children": {
+                  "Staging": {
+                    "id": "Staging",
+                    "path": "main/PrepareMoyaDataLambdV3FnV1/AssetImage/Staging",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.AssetStaging",
+                      "version": "2.175.1"
+                    }
+                  },
+                  "Repository": {
+                    "id": "Repository",
+                    "path": "main/PrepareMoyaDataLambdV3FnV1/AssetImage/Repository",
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_ecr.RepositoryBase",
+                      "version": "2.175.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_ecr_assets.DockerImageAsset",
+                  "version": "2.175.1"
+                }
+              },
+              "SecurityGroup": {
+                "id": "SecurityGroup",
+                "path": "main/PrepareMoyaDataLambdV3FnV1/SecurityGroup",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "main/PrepareMoyaDataLambdV3FnV1/SecurityGroup/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroup",
+                      "aws:cdk:cloudformation:props": {
+                        "groupDescription": "Automatic security group for Lambda Function mainPrepareMoyaDataLambdV3FnV1E980536A",
+                        "securityGroupEgress": [
+                          {
+                            "cidrIp": "0.0.0.0/0",
+                            "description": "Allow all outbound traffic by default",
+                            "ipProtocol": "-1"
+                          }
+                        ],
+                        "vpcId": "vpc-09d70cb4fca95244e"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_ec2.CfnSecurityGroup",
+                      "version": "2.175.1"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_ec2.SecurityGroup",
+                  "version": "2.175.1"
+                }
+              },
+              "Resource": {
+                "id": "Resource",
+                "path": "main/PrepareMoyaDataLambdV3FnV1/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Lambda::Function",
+                  "aws:cdk:cloudformation:props": {
+                    "architectures": [
+                      "arm64"
+                    ],
+                    "code": {
+                      "imageUri": {
+                        "Fn::Sub": "241533140414.dkr.ecr.us-east-2.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-241533140414-us-east-2:c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165"
+                      }
+                    },
+                    "description": "Prepare/Clean data - [main]",
+                    "imageConfig": {
+                      "command": [
+                        "index.lambda_handler"
+                      ]
+                    },
+                    "memorySize": 1024,
+                    "packageType": "Image",
+                    "role": {
+                      "Fn::GetAtt": [
+                        "PrepareMoyaDataLambdV3FnV1ServiceRole7C988C2C",
+                        "Arn"
+                      ]
+                    },
+                    "timeout": 900,
+                    "vpcConfig": {
+                      "subnetIds": [
+                        "subnet-0c14f336ee42f3787",
+                        "subnet-089f273e4a09f10df"
+                      ],
+                      "securityGroupIds": [
+                        {
+                          "Fn::GetAtt": [
+                            "PrepareMoyaDataLambdV3FnV1SecurityGroup3376ADEF",
+                            "GroupId"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_lambda.CfnFunction",
+                  "version": "2.175.1"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_lambda.DockerImageFunction",
+              "version": "2.175.1"
+            }
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "main/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "main/CDKMetadata/Default",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.175.1"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.4.2"
+            }
+          },
+          "BootstrapVersion": {
+            "id": "BootstrapVersion",
+            "path": "main/BootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnParameter",
+              "version": "2.175.1"
+            }
+          },
+          "CheckBootstrapVersion": {
+            "id": "CheckBootstrapVersion",
+            "path": "main/CheckBootstrapVersion",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnRule",
+              "version": "2.175.1"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.175.1"
+        }
+      },
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.4.2"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.175.1"
+    }
+  }
+}

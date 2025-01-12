@@ -1,0 +1,7 @@
+# Add your Python dependencies here
+boto3
+botocore
+pandas
+strcase
+requests
+requests-aws4auth

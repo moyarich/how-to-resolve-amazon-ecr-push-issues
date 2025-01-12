@@ -1,0 +1,904 @@
+{
+ "Metadata": {
+  "cdk_nag": {
+   "rules_to_suppress": [
+    {
+     "reason": "AWS managed policies are permitted for demo code",
+     "id": "AwsSolutions-IAM4",
+     "applies_to": [
+      "Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+      "Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+     ]
+    },
+    {
+     "reason": "IAM wildcard allowed",
+     "id": "AwsSolutions-IAM5",
+     "applies_to": [
+      "Action::s3:Abort*",
+      "Action::s3:DeleteObject*",
+      "Action::s3:GetObject*",
+      "Action::s3:GetBucket*",
+      "Action::s3:Get*",
+      "Action::s3:List*",
+      "Action::s3:Put*",
+      "Action::s3:PutObject*",
+      {
+       "regex": "/^Resource::arn:aws:s3:*\\*$/"
+      },
+      {
+       "regex": "/^Resource::<.*Bucket.+Arn>.*/\\*$/"
+      },
+      {
+       "regex": "/^Resource::<.*Table.+Arn>/index/\\*$/"
+      }
+     ]
+    },
+    {
+     "reason": "These roles are defined according to documentation",
+     "id": "AwsSolutions-IAM5"
+    },
+    {
+     "reason": "S3 server access logs not required for prototype",
+     "id": "AwsSolutions-S1"
+    }
+   ]
+  }
+ },
+ "Resources": {
+  "AWSSigurdAccessLogsBucket54494AE9": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "AccessControl": "LogDeliveryWrite",
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "IntelligentTieringConfigurations": [
+     {
+      "Id": "archive",
+      "Status": "Enabled",
+      "Tierings": [
+       {
+        "AccessTier": "ARCHIVE_ACCESS",
+        "Days": 90
+       },
+       {
+        "AccessTier": "DEEP_ARCHIVE_ACCESS",
+        "Days": 180
+       }
+      ]
+     }
+    ],
+    "OwnershipControls": {
+     "Rules": [
+      {
+       "ObjectOwnership": "ObjectWriter"
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/AWSSigurdAccessLogsBucket/Resource"
+   }
+  },
+  "AWSSigurdAccessLogsBucketPolicyC4DC4921": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "AWSSigurdAccessLogsBucket54494AE9"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AWSSigurdAccessLogsBucket54494AE9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AWSSigurdAccessLogsBucket54494AE9",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:PutObject",
+       "Condition": {
+        "StringEquals": {
+         "s3:x-amz-acl": "bucket-owner-full-control",
+         "aws:SourceAccount": "241533140414"
+        },
+        "ArnLike": {
+         "aws:SourceArn": "arn:aws:logs:us-east-2:241533140414:*"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "AWSSigurdAccessLogsBucket54494AE9",
+            "Arn"
+           ]
+          },
+          "/VpcFlowLogs/AWSLogs/241533140414/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetBucketAcl",
+        "s3:ListBucket"
+       ],
+       "Condition": {
+        "StringEquals": {
+         "aws:SourceAccount": "241533140414"
+        },
+        "ArnLike": {
+         "aws:SourceArn": "arn:aws:logs:us-east-2:241533140414:*"
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+       },
+       "Resource": {
+        "Fn::GetAtt": [
+         "AWSSigurdAccessLogsBucket54494AE9",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/AWSSigurdAccessLogsBucket/Policy/Resource"
+   }
+  },
+  "VPCVpcA5FA3038": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/20",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/Resource"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1SubnetC6C05ED1": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-east-2a",
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "PublicShared"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/Subnet"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1RouteTable56F8E133": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/RouteTable"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1RouteTableAssociation43956B52": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "VPCVpcPublicSharedSubnet1RouteTable56F8E133"
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPublicSharedSubnet1SubnetC6C05ED1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/RouteTableAssociation"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1DefaultRouteB4F36AC3": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "VPCVpcIGWE699118B"
+    },
+    "RouteTableId": {
+     "Ref": "VPCVpcPublicSharedSubnet1RouteTable56F8E133"
+    }
+   },
+   "DependsOn": [
+    "VPCVpcVPCGW0708525C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/DefaultRoute"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1EIP9388367B": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/EIP"
+   }
+  },
+  "VPCVpcPublicSharedSubnet1NATGateway9BAB55DE": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "VPCVpcPublicSharedSubnet1EIP9388367B",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPublicSharedSubnet1SubnetC6C05ED1"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet1"
+     }
+    ]
+   },
+   "DependsOn": [
+    "VPCVpcPublicSharedSubnet1DefaultRouteB4F36AC3",
+    "VPCVpcPublicSharedSubnet1RouteTableAssociation43956B52"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet1/NATGateway"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2Subnet20DAF27A": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-east-2b",
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "PublicShared"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/Subnet"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2RouteTable6AED5A17": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/RouteTable"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2RouteTableAssociationC3BEDA3A": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "VPCVpcPublicSharedSubnet2RouteTable6AED5A17"
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPublicSharedSubnet2Subnet20DAF27A"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/RouteTableAssociation"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2DefaultRoute0CD69801": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "VPCVpcIGWE699118B"
+    },
+    "RouteTableId": {
+     "Ref": "VPCVpcPublicSharedSubnet2RouteTable6AED5A17"
+    }
+   },
+   "DependsOn": [
+    "VPCVpcVPCGW0708525C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/DefaultRoute"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2EIP75CB993A": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/EIP"
+   }
+  },
+  "VPCVpcPublicSharedSubnet2NATGateway5E3676C9": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "VPCVpcPublicSharedSubnet2EIP75CB993A",
+      "AllocationId"
+     ]
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPublicSharedSubnet2Subnet20DAF27A"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PublicSharedSubnet2"
+     }
+    ]
+   },
+   "DependsOn": [
+    "VPCVpcPublicSharedSubnet2DefaultRoute0CD69801",
+    "VPCVpcPublicSharedSubnet2RouteTableAssociationC3BEDA3A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PublicSharedSubnet2/NATGateway"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet1Subnet35138918": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-east-2a",
+    "CidrBlock": "10.0.2.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "PrivateShared"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PrivateSharedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet1/Subnet"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet1RouteTableBAC3BE4E": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PrivateSharedSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet1/RouteTable"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet1RouteTableAssociation038285DE": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "VPCVpcPrivateSharedSubnet1RouteTableBAC3BE4E"
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPrivateSharedSubnet1Subnet35138918"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet1/RouteTableAssociation"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet1DefaultRoute4269AF08": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "VPCVpcPublicSharedSubnet1NATGateway9BAB55DE"
+    },
+    "RouteTableId": {
+     "Ref": "VPCVpcPrivateSharedSubnet1RouteTableBAC3BE4E"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet1/DefaultRoute"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet2SubnetE49F0DAA": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": "us-east-2b",
+    "CidrBlock": "10.0.3.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "PrivateShared"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PrivateSharedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet2/Subnet"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet2RouteTableBAC28B91": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc/PrivateSharedSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet2/RouteTable"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet2RouteTableAssociationD01141AC": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "VPCVpcPrivateSharedSubnet2RouteTableBAC28B91"
+    },
+    "SubnetId": {
+     "Ref": "VPCVpcPrivateSharedSubnet2SubnetE49F0DAA"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet2/RouteTableAssociation"
+   }
+  },
+  "VPCVpcPrivateSharedSubnet2DefaultRoute7D53E8CF": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "VPCVpcPublicSharedSubnet2NATGateway5E3676C9"
+    },
+    "RouteTableId": {
+     "Ref": "VPCVpcPrivateSharedSubnet2RouteTableBAC28B91"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/PrivateSharedSubnet2/DefaultRoute"
+   }
+  },
+  "VPCVpcIGWE699118B": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/IGW"
+   }
+  },
+  "VPCVpcVPCGW0708525C": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "VPCVpcIGWE699118B"
+    },
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/VPCGW"
+   }
+  },
+  "VPCVpcS3GatewayEndpoint3E654F7D": {
+   "Type": "AWS::EC2::VPCEndpoint",
+   "Properties": {
+    "RouteTableIds": [
+     {
+      "Ref": "VPCVpcPrivateSharedSubnet1RouteTableBAC3BE4E"
+     },
+     {
+      "Ref": "VPCVpcPrivateSharedSubnet2RouteTableBAC28B91"
+     },
+     {
+      "Ref": "VPCVpcPublicSharedSubnet1RouteTable56F8E133"
+     },
+     {
+      "Ref": "VPCVpcPublicSharedSubnet2RouteTable6AED5A17"
+     }
+    ],
+    "ServiceName": {
+     "Fn::Join": [
+      "",
+      [
+       "com.amazonaws.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".s3"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/Vpc"
+     }
+    ],
+    "VpcEndpointType": "Gateway",
+    "VpcId": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/Vpc/S3GatewayEndpoint/Resource"
+   }
+  },
+  "VPCFlowLogRoleAAC6C3E7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "vpc-flow-logs.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/FlowLogRole/Resource"
+   }
+  },
+  "VPCFlowLogRoleDefaultPolicy115FF519": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AWSSigurdAccessLogsBucket54494AE9",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AWSSigurdAccessLogsBucket54494AE9",
+             "Arn"
+            ]
+           },
+           "/VpcFlowLogs/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "VPCFlowLogRoleDefaultPolicy115FF519",
+    "Roles": [
+     {
+      "Ref": "VPCFlowLogRoleAAC6C3E7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/FlowLogRole/DefaultPolicy/Resource"
+   }
+  },
+  "VPCVpcFlowLogsFlowLog61171C84": {
+   "Type": "AWS::EC2::FlowLog",
+   "Properties": {
+    "LogDestination": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Fn::GetAtt": [
+         "AWSSigurdAccessLogsBucket54494AE9",
+         "Arn"
+        ]
+       },
+       "/VpcFlowLogs/"
+      ]
+     ]
+    },
+    "LogDestinationType": "s3",
+    "ResourceId": {
+     "Ref": "VPCVpcA5FA3038"
+    },
+    "ResourceType": "VPC",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "VPCStack/VPC/VpcFlowLogs"
+     }
+    ],
+    "TrafficType": "ALL"
+   },
+   "DependsOn": [
+    "AWSSigurdAccessLogsBucketPolicyC4DC4921"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/VpcFlowLogs/FlowLog",
+    "cdk_nag": {
+     "rules_to_suppress": [
+      {
+       "reason": "These roles are defined according to documentation",
+       "id": "AwsSolutions-IAM5"
+      }
+     ]
+    }
+   }
+  },
+  "VPCVpcIdParameterF2766999": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Name": "/VPCStack/VPC/vpc-id",
+    "Type": "String",
+    "Value": {
+     "Ref": "VPCVpcA5FA3038"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/VPC/VpcIdParameter/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/0VQXUvDMBT9LXtPo52I+jjHlIFo6KSvcpteZ9Y2KcnNyij979ImW57Oxz0cLmfN86dHnq9gcJmsm6xVFR8PBLJhMLif0T3w8dXLBoltf3VkAYRplbwkO+iJoVzzsezlfCnFlglftUoefKVDSWKF8YTfULWY/ORtnDNSASmjb+GZ7PZihk+gdyAc4MKEVWcgTMV7TWg13gLhk6g2RCD/OtTEolP2cqfr3ihNMXqTb60ZPsxxtiOdmIKOj4UJXy+YpriO4Fw372iVPgqw0CGhXe5XMU2sQGe8lUvNl6feh1GiOzFtauQnd3fOn3n+wu9XJ6dUZr0m1SEvAv4DgSn1TsEBAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "VPCStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "VPCId7E8E3FAB": {
+   "Value": {
+    "Ref": "VPCVpcA5FA3038"
+   }
+  },
+  "VPCSSMParameterName4F766910": {
+   "Value": {
+    "Ref": "VPCVpcIdParameterF2766999"
+   }
+  },
+  "VPCPublicSubnetIds1DBACA97": {
+   "Description": "List of Public Subnet IDs",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Ref": "VPCVpcPublicSharedSubnet1SubnetC6C05ED1"
+      },
+      ",",
+      {
+       "Ref": "VPCVpcPublicSharedSubnet2Subnet20DAF27A"
+      }
+     ]
+    ]
+   }
+  },
+  "VPCPrivateSubnetIds8C54D502": {
+   "Description": "List of Private Subnet IDs",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Ref": "VPCVpcPrivateSharedSubnet1Subnet35138918"
+      },
+      ",",
+      {
+       "Ref": "VPCVpcPrivateSharedSubnet2SubnetE49F0DAA"
+      }
+     ]
+    ]
+   }
+  },
+  "VPCAvailabilityZonesDA21C839": {
+   "Value": "us-east-2a,us-east-2b"
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

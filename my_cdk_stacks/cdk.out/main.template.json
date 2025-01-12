@@ -1,0 +1,179 @@
+{
+ "Metadata": {
+  "cdk_nag": {
+   "rules_to_suppress": [
+    {
+     "reason": "AWS managed policies are permitted for demo purposes",
+     "id": "AwsSolutions-IAM4",
+     "applies_to": [
+      "Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+      "Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+     ]
+    }
+   ]
+  }
+ },
+ "Resources": {
+  "PrepareMoyaDataLambdV3FnV1ServiceRole7C988C2C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource"
+   }
+  },
+  "PrepareMoyaDataLambdV3FnV1SecurityGroup3376ADEF": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function mainPrepareMoyaDataLambdV3FnV1E980536A",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": "vpc-09d70cb4fca95244e"
+   },
+   "Metadata": {
+    "aws:cdk:path": "main/PrepareMoyaDataLambdV3FnV1/SecurityGroup/Resource"
+   }
+  },
+  "PrepareMoyaDataLambdV3FnV1F9DE3B7A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "ImageUri": {
+      "Fn::Sub": "241533140414.dkr.ecr.us-east-2.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-241533140414-us-east-2:c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165"
+     }
+    },
+    "Description": "Prepare/Clean data - [main]",
+    "ImageConfig": {
+     "Command": [
+      "index.lambda_handler"
+     ]
+    },
+    "MemorySize": 1024,
+    "PackageType": "Image",
+    "Role": {
+     "Fn::GetAtt": [
+      "PrepareMoyaDataLambdV3FnV1ServiceRole7C988C2C",
+      "Arn"
+     ]
+    },
+    "Timeout": 900,
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "PrepareMoyaDataLambdV3FnV1SecurityGroup3376ADEF",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-0c14f336ee42f3787",
+      "subnet-089f273e4a09f10df"
+     ]
+    }
+   },
+   "DependsOn": [
+    "PrepareMoyaDataLambdV3FnV1ServiceRole7C988C2C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "main/PrepareMoyaDataLambdV3FnV1/Resource",
+    "aws:asset:path": "asset.c2c7fd088d188c4377e8738101ec8ea99a7fa96e6b42fe17ffb1f4c51a179165",
+    "aws:asset:dockerfile-path": "Dockerfile",
+    "aws:asset:docker-build-args": {
+     "provenance": "false",
+     "sbom": "false"
+    },
+    "aws:asset:property": "Code.ImageUri"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WOzQrCMBCEn8V7ulpB1KM/KF7bB5A1XcvaNpFsokjIu0v8AT3N8A0zu1Mo5zMoR3iXQjdd0fMJYu1Rd6oiscFpUniXY+xxODUIcWt1R+4wYEu7YLRna9TmbL4+KcYBYmV7yjhrUqTdEUXIC/zUV5nkDCq6WmFv3WONQor0FGJNOjj2j72z4Zqn/kBK6lWvPbZs2tepz7tJGdsQXGR8KxdQLmEyughz4YLxPBBUb30CUhDytvkAAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "main/CDKMetadata/Default"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

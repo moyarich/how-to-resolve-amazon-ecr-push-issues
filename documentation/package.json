@@ -1,0 +1,29 @@
+{
+  "name": "documentation",
+  "version": "1.0.0",
+  "description": "Readme documents are in the `src` folder",
+  "author": "Moya Richards",
+  "license": "ISC",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build-docs": "chmod +x build-docs.sh && ./build-docs.sh",
+    "copyfiles": "find src -type f -iname '*.png' -exec sh -c 'mkdir -p ../../images && cp \"$1\" ../../images/' _ {} \\;",
+    "sync_image": "sed -i '' 's@\\.\\/images\\/\\([^)]*\\)@\\.\\/docs\\/images\\/\\1@g' ../../README.md",
+    "generate-readme": "npx concat-md --toc --decrease-title-levels --title-key title --dir-name-as-title src > ../../README.md",
+    "clean-headers": "sed -E -i '' 's/^([#]+) [0-9]+ (.+)/\\1 \\2/' ../../README.md",
+    "clean-toc": "sed -E -i '' 's/- \\[([0-9]+ )(.+)\\]/- [\\2]/' ../../README.md"
+  },
+  "dependencies": {
+    "@types/node": "^22.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
+    "concat-md": "^0.5.1",
+    "eslint": "^9.15.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.31.0",
+    "typescript": "^5.6.3"
+  }
+}

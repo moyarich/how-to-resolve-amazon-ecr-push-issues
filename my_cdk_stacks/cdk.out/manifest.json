@@ -1,0 +1,163 @@
+{
+  "version": "39.0.0",
+  "artifacts": {
+    "main.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "main.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "main": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://241533140414/us-east-2",
+      "properties": {
+        "templateFile": "main.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::241533140414:role/cdk-hnb659fds-deploy-role-241533140414-us-east-2",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::241533140414:role/cdk-hnb659fds-cfn-exec-role-241533140414-us-east-2",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-241533140414-us-east-2/927c85a7e592ea3c0e92a8ab9cbc48ea3085e1a6d17b2bd212775a2d12fedb48.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "main.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::241533140414:role/cdk-hnb659fds-lookup-role-241533140414-us-east-2",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "main.assets"
+      ],
+      "metadata": {
+        "/main/PrepareMoyaDataLambdV3FnV1/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PrepareMoyaDataLambdV3FnV1ServiceRole7C988C2C"
+          },
+          {
+            "type": "aws:cdk:info",
+            "data": "CdkNagSuppression[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]: AwsSolutions-IAM4 was triggered but suppressed. Provided reason: \"[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole] AWS managed policies are permitted for demo purposes\"\n",
+            "trace": [
+              "Annotations.addMessage (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1608)",
+              "Annotations.addInfo (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1015)",
+              "AnnotationLogger.onSuppressed (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-logger.ts:156:37)",
+              "/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-pack.ts:177:17",
+              "Array.forEach (<anonymous>)",
+              "AwsSolutionsChecks.applyRule (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-pack.ts:176:26)",
+              "AwsSolutionsChecks.checkSecurityCompliance (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/packs/aws-solutions.ts:1215:10)",
+              "AwsSolutionsChecks.visit (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/packs/aws-solutions.ts:206:12)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3976)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "invokeAspectsV2 (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:2839)",
+              "synthesize (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1505)",
+              "App.synth (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/stage.js:1:2474)",
+              "Object.<anonymous> (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/src/moya-test-stack.ts:132:5)",
+              "Module._compile (node:internal/modules/cjs/loader:1356:14)",
+              "Module.m._compile (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/index.ts:1618:23)",
+              "Module._extensions..js (node:internal/modules/cjs/loader:1414:10)",
+              "Object.require.extensions.<computed> [as .ts] (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/index.ts:1621:12)",
+              "Module.load (node:internal/modules/cjs/loader:1197:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:1013:12)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)",
+              "phase4 (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:649:14)",
+              "bootstrap (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:95:10)",
+              "main (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:55:10)",
+              "Object.<anonymous> (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:800:3)",
+              "Module._compile (node:internal/modules/cjs/loader:1356:14)",
+              "Object.Module._extensions..js (node:internal/modules/cjs/loader:1414:10)",
+              "Module.load (node:internal/modules/cjs/loader:1197:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:1013:12)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)",
+              "node:internal/main/run_main_module:28:49"
+            ]
+          },
+          {
+            "type": "aws:cdk:info",
+            "data": "CdkNagSuppression[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole]: AwsSolutions-IAM4 was triggered but suppressed. Provided reason: \"[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole] AWS managed policies are permitted for demo purposes\"\n",
+            "trace": [
+              "Annotations.addMessage (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1608)",
+              "Annotations.addInfo (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/annotations.js:1:1015)",
+              "AnnotationLogger.onSuppressed (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-logger.ts:156:37)",
+              "/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-pack.ts:177:17",
+              "Array.forEach (<anonymous>)",
+              "AwsSolutionsChecks.applyRule (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/nag-pack.ts:176:26)",
+              "AwsSolutionsChecks.checkSecurityCompliance (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/packs/aws-solutions.ts:1215:10)",
+              "AwsSolutionsChecks.visit (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/cdk-nag/src/packs/aws-solutions.ts:206:12)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:3976)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "recurse (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:4160)",
+              "invokeAspectsV2 (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:2:2839)",
+              "synthesize (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:1505)",
+              "App.synth (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/node_modules/aws-cdk-lib/core/lib/stage.js:1:2474)",
+              "Object.<anonymous> (/Users/moyamoy/www/Moya_git_demos/how-to-resolve-amazon-ecr-push-issues/my_cdk_stacks/src/moya-test-stack.ts:132:5)",
+              "Module._compile (node:internal/modules/cjs/loader:1356:14)",
+              "Module.m._compile (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/index.ts:1618:23)",
+              "Module._extensions..js (node:internal/modules/cjs/loader:1414:10)",
+              "Object.require.extensions.<computed> [as .ts] (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/index.ts:1621:12)",
+              "Module.load (node:internal/modules/cjs/loader:1197:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:1013:12)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)",
+              "phase4 (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:649:14)",
+              "bootstrap (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:95:10)",
+              "main (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:55:10)",
+              "Object.<anonymous> (/Users/moyamoy/.npm/_npx/1bf7c3c15bf47d04/node_modules/ts-node/src/bin.ts:800:3)",
+              "Module._compile (node:internal/modules/cjs/loader:1356:14)",
+              "Object.Module._extensions..js (node:internal/modules/cjs/loader:1414:10)",
+              "Module.load (node:internal/modules/cjs/loader:1197:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:1013:12)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)",
+              "node:internal/main/run_main_module:28:49"
+            ]
+          }
+        ],
+        "/main/PrepareMoyaDataLambdV3FnV1/SecurityGroup/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PrepareMoyaDataLambdV3FnV1SecurityGroup3376ADEF"
+          }
+        ],
+        "/main/PrepareMoyaDataLambdV3FnV1/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PrepareMoyaDataLambdV3FnV1F9DE3B7A"
+          }
+        ],
+        "/main/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/main/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/main/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "main"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}

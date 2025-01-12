@@ -1,0 +1,37 @@
+{
+  "name": "my_cdk_stacks",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "lint": "eslint src/",
+    "synth": "DOCKER_BUILDKIT=1 sh -c 'npm run cdk synth -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
+    "deploy": "DOCKER_BUILDKIT=1 sh -c 'npm run cdk deploy -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
+    "predeploy": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "destroy": "npm run cdk destroy -- -c stack_name=\"${STACK_NAME:-}\" --all",
+    "bootstrap": "CDK_VPC_ID=\"no-vpc-to-bootstrap\" STACK_NAME=\"stack_name_not_needed\" cd my_cdk_stacks && cdk bootstrap --cloudformation-execution-policies 'arn:aws:iam::aws:policy/PowerUserAccess,arn:aws:iam::aws:policy/IAMFullAccess'",
+    "synth.vpc": "npm install && npx cdk synth --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never",
+    "deploy.vpc": "DOCKER_BUILDKIT=1 sh -c 'npm install && cdk deploy --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
+    "destroy.vpc": "npx cdk destroy --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all",
+    "predeploy.moya.test": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "deploy.moya.test": "DOCKER_BUILDKIT=1 sh -c 'npm install && cdk deploy --all --require-approval never --app \"npx ts-node src/moya-test-stack.ts\" --context \"stack_name=${STACK_NAME}\"'",
+    "destroy.moya.test": "npx cdk destroy --app \"npx ts-node src/moya-test-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "aws-cdk-lib": "^2.175.1",
+    "cdk-nag": "^2.34.23",
+    "constructs": "^10.4.2",
+    "dotenv": "^16.4.7",
+    "git-branch": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/git-branch": "^2.0.5",
+    "@types/node": "^22.10.5"
+  }
+}
