@@ -1,6 +1,9 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Resolve Docker And ECR Push Issues](#01-resolve-docker-and-ecr-push-issues)
+    - [Common ECR Push Errors](#common-ecr-push-errors)
+    - [Example Code](#example-code)
   - [Running the CDK Application](#running-the-cdk-application)
   - [Notes:](#notes)
   - [Step 1: Bootstrap the CDK Environment](#step-1-bootstrap-the-cdk-environment)
@@ -9,96 +12,13 @@
     - [B. Deploy the Main Application](#b-deploy-the-main-application)
     - [C. (Optional) Deploy the Test Stack](#c-optional-deploy-the-test-stack)
   - [Step 3: Destroy the Main Stack](#step-3-destroy-the-main-stack)
-- [Resolve Docker And ECR Push Issues](#02-resolve-docker-and-ecr-push-issues)
-    - [Common ECR Push Errors](#common-ecr-push-errors)
-    - [Example Code](#example-code)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-
-<a name="01-readmemd"></a>
-
-## Running the CDK Application
-
-Follow these steps to bootstrap, deploy, and manage the CDK application.
-
----
-
-## Notes:
-
-- **Environment Variables**: Ensure `CDK_VPC_ID` is set correctly for all commands requiring a VPC.
-- **Stack Naming**: Use consistent stack names to avoid deployment conflicts.
-- **Take Note**: Record any outputs from the deployment (e.g., VPC ID) for use in subsequent steps.
-
----
-
-## Step 1: Bootstrap the CDK Environment
-
-Before deploying, bootstrap the CDK environment. Replace `STACK_NAME` with your desired stack name:
-
-```bash
-npm run deploy.bootstrap
-```
-
----
-
-## Step 2: Deploy Demo Application
-
-### A. Deploy the VPC
-
-The Lambda function in this stack requires a VPC. You can either:
-
-1. **Create a VPC using the `vpc-stack.ts` file**:  
-   Run the following command:
-
-   ```bash
-   npm run deploy.vpc
-   ```
-
-   - **Note**: After deployment, record the VPC ID from the CloudFormation output.
-
-2. **Use an existing VPC**:  
-   If you already have a VPC, specify the VPC ID as an environment variable:
-   ```bash
-   CDK_VPC_ID=vpc-09d70cb4fca95244e npm run deploy.vpc
-   ```
-
----
-
-### B. Deploy the Main Application
-
-Deploy the main stack defined in `app.ts`. Replace `STACK_NAME` with the appropriate value, ensuring that `CDK_VPC_ID` matches your VPC:
-
-```bash
-CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=main npm run deploy
-```
-
----
-
-### C. (Optional) Deploy the Test Stack
-
-To deploy the test stack defined in `moya-test-stack.ts`, use the following command:
-
-```bash
-CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=MoyaTestStack npm run deploy.moya.test
-```
-
----
-
-## Step 3: Destroy the Main Stack
-
-To clean up and remove the main stack, specify the stack name during destruction:
-
-```bash
-CDK_VPC_ID=vpc-09d70cb4fca95244e cdk destroy main-app -c stack_name=main
-```
-
----
 
 # Resolve Docker And ECR Push Issues
 
 
-<a name="02-resolve-docker-and-ecr-push-issuesreadmemd"></a>
+<a name="01-resolve-docker-and-ecr-push-issuesreadmemd"></a>
 
 Step by step guide to resolving Amazon Elastic Container Registry (ECR) issues with Docker Images for CLI and DockerImageFunction
 
@@ -599,3 +519,83 @@ cdk.Aspects.of(app).add(
 );
 app.synth();
 ```
+
+
+<a name="02-readmemd"></a>
+
+## Running the CDK Application
+
+Follow these steps to bootstrap, deploy, and manage the CDK application.
+
+---
+
+## Notes:
+
+- **Environment Variables**: Ensure `CDK_VPC_ID` is set correctly for all commands requiring a VPC.
+- **Stack Naming**: Use consistent stack names to avoid deployment conflicts.
+- **Take Note**: Record any outputs from the deployment (e.g., VPC ID) for use in subsequent steps.
+
+---
+
+## Step 1: Bootstrap the CDK Environment
+
+Before deploying, bootstrap the CDK environment. Replace `STACK_NAME` with your desired stack name:
+
+```bash
+npm run deploy.bootstrap
+```
+
+---
+
+## Step 2: Deploy Demo Application
+
+### A. Deploy the VPC
+
+The Lambda function in this stack requires a VPC. You can either:
+
+1. **Create a VPC using the `vpc-stack.ts` file**:  
+   Run the following command:
+
+   ```bash
+   npm run deploy.vpc
+   ```
+
+   - **Note**: After deployment, record the VPC ID from the CloudFormation output.
+
+2. **Use an existing VPC**:  
+   If you already have a VPC, specify the VPC ID as an environment variable:
+   ```bash
+   CDK_VPC_ID=vpc-09d70cb4fca95244e npm run deploy.vpc
+   ```
+
+---
+
+### B. Deploy the Main Application
+
+Deploy the main stack defined in `app.ts`. Replace `STACK_NAME` with the appropriate value, ensuring that `CDK_VPC_ID` matches your VPC:
+
+```bash
+CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=main npm run deploy
+```
+
+---
+
+### C. (Optional) Deploy the Test Stack
+
+To deploy the test stack defined in `moya-test-stack.ts`, use the following command:
+
+```bash
+CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=MoyaTestStack npm run deploy.moya.test
+```
+
+---
+
+## Step 3: Destroy the Main Stack
+
+To clean up and remove the main stack, specify the stack name during destruction:
+
+```bash
+CDK_VPC_ID=vpc-09d70cb4fca95244e cdk destroy main-app -c stack_name=main
+```
+
+---
