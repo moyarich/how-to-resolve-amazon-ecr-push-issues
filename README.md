@@ -3,22 +3,23 @@
 
 - [Resolve Docker And ECR Push Issues](#01-resolve-docker-and-ecr-push-issues)
     - [Common ECR Push Errors](#common-ecr-push-errors)
+    - [Fixing ECR Push Errors](#fixing-ecr-push-errors)
+    - [Automating the Deployment](#automating-the-deployment)
+    - [Example Shell Script for Building and Pushing Docker Images to ECR](#example-shell-script-for-building-and-pushing-docker-images-to-ecr)
     - [Example Code](#example-code)
-  - [Running the CDK Application](#running-the-cdk-application)
-  - [Notes:](#notes)
-  - [Step 1: Bootstrap the CDK Environment](#step-1-bootstrap-the-cdk-environment)
-  - [Step 2: Deploy Demo Application](#step-2-deploy-demo-application)
-    - [A. Deploy the VPC](#a-deploy-the-vpc)
-    - [B. Deploy the Main Application](#b-deploy-the-main-application)
-    - [C. (Optional) Deploy the Test Stack](#c-optional-deploy-the-test-stack)
-  - [Step 3: Destroy the Main Stack](#step-3-destroy-the-main-stack)
+- [Deploying The Demo App](#02-deploying-the-demo-app)
+    - [Running the CDK Application](#running-the-cdk-application)
+    - [Notes:](#notes)
+    - [Step 1: Bootstrap the CDK Environment](#step-1-bootstrap-the-cdk-environment)
+    - [Step 2: Deploy Demo Application](#step-2-deploy-demo-application)
+    - [Step 3: Destroy the Main Stack](#step-3-destroy-the-main-stack)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Resolve Docker And ECR Push Issues
 
 
-<a name="01-resolve-docker-and-ecr-push-issuesreadmemd"></a>
+<a name="01-resolve-docker-and-ecr-push-issues01-readmemd"></a>
 
 Step by step guide to resolving Amazon Elastic Container Registry (ECR) issues with Docker Images for CLI and DockerImageFunction
 
@@ -46,11 +47,11 @@ These are the steps I took to fix the issue below
 
 ---
 
-#### Fixing ECR Push Errors
+### Fixing ECR Push Errors
 
-##### 1. Enable Docker BuildKit
+#### 1. Enable Docker BuildKit
 
-###### Set the DOCKER_BUILDKIT environment variable to enable BuildKit
+##### Set the DOCKER_BUILDKIT environment variable to enable BuildKit
 
 ```bash
 export DOCKER_BUILDKIT=1
@@ -59,7 +60,7 @@ export BUILDKIT_PROGRESS=plain
 
 Add these variables to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile) to persist the setting.
 
-###### Alternatively, use `docker buildx` instead of `docker build` for extended BuildKit capabilities
+##### Alternatively, use `docker buildx` instead of `docker build` for extended BuildKit capabilities
 
 **To setup Docker build as a pass-through to Docker Buildx**:
 First make sure that you have Docker Buildx installed `docker buildx version`. It's included by default in new versions of Docker Desktop and in Docker Engine.
@@ -74,7 +75,7 @@ Add this alias to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~
 
 ---
 
-##### 2. Clean Up ECR Repositories
+#### 2. Clean Up ECR Repositories
 
 - **Prune Local Docker Images**: Remove unused local Docker images with:
   ```bash
@@ -82,7 +83,7 @@ Add this alias to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~
   ```
 - **Delete Empty Images**: Locate and remove images with 0-byte layers from the ECR registry using the AWS Management Console or AWS CLI.
 
-###### Delete empty images via AWS CLI Script
+##### Delete empty images via AWS CLI Script
 
 ```bash
 is_command_present() {
@@ -150,11 +151,11 @@ done
 
 ---
 
-##### 3. Create a New ECR Repository Tag for Your ECR Container Docker Image
+#### 3. Create a New ECR Repository Tag for Your ECR Container Docker Image
 
 For Lambda `DockerImageFunction`, AWS CDK automatically manages image tagging and pushing to Amazon ECR. The image is tagged with a hash based on its content, ensuring that changes result in a new tag.
 
-##### Options to Force a New Tag in the ECR Registry
+#### Options to Force a New Tag in the ECR Registry
 
 Use one of these approaches to force a new tag, `repeat this step` if you continue to encounter issues with stale or problematic images:
 
@@ -204,30 +205,30 @@ docker tag my_image_name:<this_is_my_image_name_tag_here> 241533140213.dkr.ecr.u
 
 ---
 
-##### 4. Disable Metadata Attestations
+#### 4. Disable Metadata Attestations
 
 [Docker Metadata Attestations Documentation](https://docs.docker.com/build/metadata/attestations)
 Avoid potential registry configuration issues by disabling provenance and Software Bill of Materials (SBOM) generation:
 
-###### Option 1: Use the `BUILDX_NO_DEFAULT_ATTESTATIONS` Environment Variable
+##### Option 1: Use the `BUILDX_NO_DEFAULT_ATTESTATIONS` Environment Variable
 
 ```bash
 export BUILDX_NO_DEFAULT_ATTESTATIONS=1
 ```
 
-###### Option 2: Pass build arguments during the Docker build process to avoid metadata issues during image push
+##### Option 2: Pass build arguments during the Docker build process to avoid metadata issues during image push
 
 - Set `sbom` to false.
 
 - Set the `provenance` build argument to false.
 
-####### Example Command-Line Build
+##### Example Command-Line Build
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -t my_image_name --provenance=false --sbom=false .
 ```
 
-####### Modify Lambda Function Build Settings in CDK to remove metadata
+##### Modify Lambda Function Build Settings in CDK to remove metadata
 
 If using AWS CDK for Lambda deployments, include the `provenance` and `sbom` arguments in the buildArgs for your `DockerImageFunction`.
 
@@ -260,14 +261,14 @@ const prepareDataFn = new cdk.aws_lambda.DockerImageFunction(
 
 ---
 
-#### Automating the Deployment
+### Automating the Deployment
 
 Automate your deployment process using a package.json configuration to:
 
 - Automatically log into ECR
 - Automatically set DOCKER_BUILDKIT=1
 
-##### `package.json configuration`
+#### `package.json configuration`
 
 **Note: Example `package.json` [Works on mac/linux, uses `sh`]:**
 
@@ -289,7 +290,7 @@ BUILDKIT_PROGRESS=plain CDK_VPC_ID=vpc-09f66ffff5d2773de STACK_NAME=MoyaTestStac
 
 ---
 
-#### Example Shell Script for Building and Pushing Docker Images to ECR
+### Example Shell Script for Building and Pushing Docker Images to ECR
 
 ```bash
 ## Set variables
@@ -347,6 +348,9 @@ docker push "${FULL_IMAGE_NAME}"
   "name": "project-root",
   "version": "0.0.1",
   "scripts": {
+    "deploy": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm run cdk deploy -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
+    "predeploy": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "destroy": "cd my_cdk_stacks && npm run cdk destroy -- -c stack_name=\"${STACK_NAME:-}\" --all",
     "predeploy.moya.test": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
     "deploy.moya.test": "DOCKER_BUILDKIT=1 sh -c 'echo \"moyas--$DOCKER_BUILDKIT\" && cd my_cdk_stacks && npm install && cdk deploy --all --require-approval never --app \"npx ts-node src/moya-test-stack.ts\" --context \"stack_name=${STACK_NAME}\"'",
     "destroy.moya.test": "cd my_cdk_stacks && npx cdk destroy --app \"npx ts-node src/moya-test-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all"
@@ -520,16 +524,18 @@ cdk.Aspects.of(app).add(
 app.synth();
 ```
 
+# Deploying The Demo App
 
-<a name="02-readmemd"></a>
 
-## Running the CDK Application
+<a name="02-deploying-the-demo-app01-readmemd"></a>
+
+### Running the CDK Application
 
 Follow these steps to bootstrap, deploy, and manage the CDK application.
 
 ---
 
-## Notes:
+### Notes:
 
 - **Environment Variables**: Ensure `CDK_VPC_ID` is set correctly for all commands requiring a VPC.
 - **Stack Naming**: Use consistent stack names to avoid deployment conflicts.
@@ -537,7 +543,7 @@ Follow these steps to bootstrap, deploy, and manage the CDK application.
 
 ---
 
-## Step 1: Bootstrap the CDK Environment
+### Step 1: Bootstrap the CDK Environment
 
 Before deploying, bootstrap the CDK environment. Replace `STACK_NAME` with your desired stack name:
 
@@ -547,9 +553,9 @@ npm run deploy.bootstrap
 
 ---
 
-## Step 2: Deploy Demo Application
+### Step 2: Deploy Demo Application
 
-### A. Deploy the VPC
+#### A. Deploy the VPC
 
 The Lambda function in this stack requires a VPC. You can either:
 
@@ -570,7 +576,7 @@ The Lambda function in this stack requires a VPC. You can either:
 
 ---
 
-### B. Deploy the Main Application
+#### B. Deploy the Main Application
 
 Deploy the main stack defined in `app.ts`. Replace `STACK_NAME` with the appropriate value, ensuring that `CDK_VPC_ID` matches your VPC:
 
@@ -580,7 +586,7 @@ CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=main npm run deploy
 
 ---
 
-### C. (Optional) Deploy the Test Stack
+#### C. (Optional) Deploy the Test Stack
 
 To deploy the test stack defined in `moya-test-stack.ts`, use the following command:
 
@@ -590,7 +596,7 @@ CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=MoyaTestStack npm run deploy.moya.te
 
 ---
 
-## Step 3: Destroy the Main Stack
+### Step 3: Destroy the Main Stack
 
 To clean up and remove the main stack, specify the stack name during destruction:
 
