@@ -51,17 +51,20 @@ current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$current_dir"
 
 # Set the location of the README file (adjustable to be easily moved)
-output_dir="${OUTPUT_DIR:-$current_dir/../}"
-readme_file="$output_dir/README.md"
+output_dir="${OUTPUT_DIR:-$current_dir/..}"
+build_dir="$current_dir/build"
+readme_file="$build_dir/README.md"
 
 # Default image folder name relative to the output directory
 asset_folder="${asset_folder:-$output_dir/doc-images}"
 
 # Ensure output directories exist
-mkdir -p "$output_dir" "$asset_folder"
+mkdir -p "$output_dir" "build_dir" "$asset_folder"
 
 echo "Output directory: $output_dir"
-echo "Asset folder: $asset_folder"
+echo "Asset folder: $asset_folder\n"
+echo "readme_file : $readme_file \n"
+echo "readme_file : $readme_file \n"
 
 #====================
 # Step 1: Recursively find and copy files from 'images' subfolders to the doc-images folder, preserving only the subfolder under 'images'
@@ -117,5 +120,6 @@ sedi -E 's/^([#]+) [0-9]+ (.+)/\1 \2/' "$readme_file"
 
 # Step 5: Remove numeric prefixes from the table of contents text inside the brackets.
 sedi -E 's/- \[([0-9]+ )(.+)\]/- [\2]/' "$readme_file"
-
+# step 6
+npx inject-markdown "$readme_file" --cwd "$build_dir" --output-dir "$output_dir"
 echo "Build script completed successfully."

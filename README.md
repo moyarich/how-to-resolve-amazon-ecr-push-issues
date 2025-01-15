@@ -1,35 +1,26 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
+
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Resolve Docker And ECR Push Issues](#01-resolve-docker-and-ecr-push-issues)
-    - [Common ECR Push Errors](#common-ecr-push-errors)
-    - [Fixing ECR Push Errors](#fixing-ecr-push-errors)
-    - [Automating the Deployment](#automating-the-deployment)
-    - [Example Shell Script for Building and Pushing Docker Images to ECR](#example-shell-script-for-building-and-pushing-docker-images-to-ecr)
-    - [Example Code](#example-code)
-- [Deploying The Demo App](#02-deploying-the-demo-app)
-    - [Running the CDK Application](#running-the-cdk-application)
-    - [Notes:](#notes)
-    - [Step 1: Bootstrap the CDK Environment](#step-1-bootstrap-the-cdk-environment)
-    - [Step 2: Deploy Demo Application](#step-2-deploy-demo-application)
-    - [Step 3: Destroy the Main Stack](#step-3-destroy-the-main-stack)
+  - [Common ECR Push Errors](#common-ecr-push-errors)
+  - [Fixing ECR Push Errors](#fixing-ecr-push-errors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Resolve Docker And ECR Push Issues
 
-
 <a name="01-resolve-docker-and-ecr-push-issues01-readmemd"></a>
 
 Step by step guide to resolving Amazon Elastic Container Registry (ECR) issues with Docker Images for CLI and DockerImageFunction
 
-![Issue Example](doc-images/invalid_image.png)
+![Issue Example](../..doc-images/invalid_image.png)
 
 ### Common ECR Push Errors
 
 Here are some typical errors you might encounter when pushing images to ECR:
 
-Issue Discussion is here: https://github.com/aws/aws-cdk/issues/31548
+Issue Discussion is here: <https://github.com/aws/aws-cdk/issues/31548>
 
 These are the steps I took to fix the issue below
 
@@ -45,20 +36,20 @@ These are the steps I took to fix the issue below
   Resource handler returned message: "Lambda function ... reached terminal FAILED state due to InvalidImage(ImageLayerFailure: UnsupportedImageLayerDetected - Layer Digest sha256:...) and failed to stabilize" (RequestToken: ..., HandlerErrorCode: NotStabilized)
   ```
 
----
+***
 
 ### Fixing ECR Push Errors
 
 #### 1. Enable Docker BuildKit
 
-##### Set the DOCKER_BUILDKIT environment variable to enable BuildKit
+##### Set the DOCKER\_BUILDKIT environment variable to enable BuildKit
 
 ```bash
 export DOCKER_BUILDKIT=1
 export BUILDKIT_PROGRESS=plain
 ```
 
-Add these variables to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile) to persist the setting.
+Add these variables to your shell configuration file (e.g., \~/.bashrc, \~/.zshrc, or \~/.profile) to persist the setting.
 
 ##### Alternatively, use `docker buildx` instead of `docker build` for extended BuildKit capabilities
 
@@ -71,9 +62,9 @@ alias 'docker build'='docker buildx build'
 
 Note: to delete alias `unalias 'docker build'`
 
-Add this alias to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile) to persist the setting.
+Add this alias to your shell configuration file (e.g., \~/.bashrc, \~/.zshrc, or \~/.profile) to persist the setting.
 
----
+***
 
 #### 2. Clean Up ECR Repositories
 
@@ -81,11 +72,19 @@ Add this alias to your shell configuration file (e.g., ~/.bashrc, ~/.zshrc, or ~
   ```bash
   docker system prune --all
   ```
-- **Delete Empty Images**: Locate and remove images with 0-byte layers from the ECR registry using the AWS Management Console or AWS CLI.
+- **Delete Empty Images**: Locate and remove images with 0-megabyte layers from the ECR registry using the AWS Management Console or AWS CLI.
 
 ##### Delete empty images via AWS CLI Script
 
+<!--- @@inject-code: ../../scripts/delete_empty_images_from_ecr.sh#lang=bash --->
+
 ```bash
+#!/bin/bash
+###################################################################
+# 1 megabyte (MB) is equal to 1,048,576 bytes (1024 × 1024) in the binary system
+# An empty image is less than 1,048,576 bytes
+###################################################################
+
 is_command_present() {
     type "$1" >/dev/null 2>&1
 }
@@ -103,53 +102,86 @@ install_jq() {
     fi
 }
 
-install_jq
+delete_empty_images_from_ecr.sh() {
 
-##==============================
-repositories=$(aws ecr describe-repositories --region $AWS_DEFAULT_REGION --query 'repositories[*].repositoryName' --output text)
+    region="us-east-1"
 
-for repo in $repositories; do
-    echo "\nProcessing repository: $repo"
-
-    # Get the list of image digests in the repository
-    image_ids=$(aws ecr list-images --repository-name $repo --region $AWS_DEFAULT_REGION --query 'imageIds[*]' --output json)
-
-    echo $image_ids | jq -c '.[]' | while read -r image; do
-        digest=$(echo $image | jq -r '.imageDigest')
-
-        # Get the image details
-        image_details=$(aws ecr describe-images --repository-name $repo --image-ids imageDigest=$digest --region $AWS_DEFAULT_REGION)
-        #echo "image_details for $tags:\n $image_details"
-
-        # Get all tags for this image
-        tags=$(echo $image_details | jq -r '.imageDetails[0].imageTags[]' 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-
-        image_size=$(echo $image_details | jq '.imageDetails[0].imageSizeInBytes')
-
-        echo "\nImage digest: $digest\nRepository name: $repo \nImage tags: $tags"
-        # Check if the image size is 0 bytes
-        if [ "$image_size" = "0" ]; then
-            echo "Image is empty, deleting image with digest $digest"
-            aws ecr batch-delete-image --repository-name $repo --image-ids imageDigest=$digest --region $AWS_DEFAULT_REGION
-
-            # Run the AWS ECR delete command
-            output=$(aws ecr batch-delete-image --repository-name $repo --image-ids imageDigest=$digest --region $AWS_DEFAULT_REGION)
-
-            # Check for failures or success
-            echo "$output" | jq '
-            if .failures | length > 0 then
-                "Deletion Failure: \(.failures[0].failureReason)"
-            else
-                "Success: Image deleted"
-            end'
-        else
-            echo "Image Size: $image_size bytes\nImage not empty [image not deleted]"
-        fi
+    # Parse command line arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+        --region)
+            region="$2"
+            shift 2
+            ;;
+        *)
+            echo "Error: Unknown parameter: $1"
+            return 1
+            ;;
+        esac
     done
-done
+
+    install_jq
+
+    #==============================
+    repositories=$(aws ecr describe-repositories --region $region --query 'repositories[*].repositoryName' --output text)
+
+    for repo in $repositories; do
+        echo "\nProcessing repository: $repo"
+
+        # Get the list of image digests in the repository
+        image_ids=$(aws ecr list-images --repository-name $repo --region $region --query 'imageIds[*]' --output json)
+
+        echo $image_ids | jq -c '.[]' | while read -r image; do
+            digest=$(echo $image | jq -r '.imageDigest')
+
+            # Get the image details
+            image_details=$(aws ecr describe-images --repository-name $repo --image-ids imageDigest=$digest --region $region)
+            #echo "image_details for $tags:\n $image_details"
+
+            # Get all tags for this image
+            tags=$(echo $image_details | jq -r '.imageDetails[0].imageTags[]' 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+
+            image_size=$(echo $image_details | jq '.imageDetails[0].imageSizeInBytes')
+
+            #if image_size=1620 bytes, it is 0 bytes
+            image_size_megabyte=$(echo "scale=6; $image_size / (1024 * 1024)" | bc)
+
+            echo -e "\nImage Digest: $digest\nRepository Name: $repo\nImage Tags: $tags\nImage Size: $image_size bytes ($image_size_megabyte MB)"
+
+            # Check if the image size is 0 megabytes [ie: 1620 bytes - less than 1,048,576 bytes]
+            is_less_than_one_megabyte=$(echo "$image_size_megabyte < 1" | bc -l)
+
+            # Check if the result is 1 (true)
+            if [ "$is_less_than_one_megabyte" -eq 1 ]; then
+                echo "Image is empty, deleting image with digest $digest"
+                aws ecr batch-delete-image --repository-name $repo --image-ids imageDigest=$digest --region $region
+
+                # Run the AWS ECR delete command
+                output=$(aws ecr batch-delete-image --repository-name $repo --image-ids imageDigest=$digest --region $region)
+
+                # Check for failures or success
+                echo "$output" | jq '
+                if .failures | length > 0 then
+                    "Deletion Failure: \(.failures[0].failureReason)"
+                else
+                    "Success: Image deleted"
+                end'
+            else
+                echo "Image Size: $image_size bytes\nImage not empty [image not deleted]"
+            fi
+        done
+    done
+}
+delete_empty_images_from_ecr.sh() {
+# If the script is being run directly (not sourced), call the function
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    delete_empty_images_from_ecr.sh "$@"
+fi
 ```
 
----
+<!--- @@inject-end: ../../scripts/delete_empty_images_from_ecr.sh#lang=bash --->
+
+***
 
 #### 3. Create a New ECR Repository Tag for Your ECR Container Docker Image
 
@@ -159,13 +191,13 @@ For Lambda `DockerImageFunction`, AWS CDK automatically manages image tagging an
 
 Use one of these approaches to force a new tag, `repeat this step` if you continue to encounter issues with stale or problematic images:
 
-1. **Update the Docker Build Context - IE. Modifying the Lambda Handler Source Code**  
+1. **Update the Docker Build Context - IE. Modifying the Lambda Handler Source Code**\
    Modifying files in the Docker build context (many any change to the source code) will trigger a new content-based hash and a new image tag.
 
-2. **Update the Dockerfile**  
+1. **Update the Dockerfile**\
    Modifying the `Dockerfile` (e.g., adding or changing `COPY` or `ENV` instructions) will generate a new content hash and tag.
 
-3. **Change the Logical ID of the `DockerImageFunction` in Your CDK Stack**  
+1. **Change the Logical ID of the `DockerImageFunction` in Your CDK Stack**\
    Renaming the logical ID in the CDK stack forces the creation of a new resource, triggering a new image tag even without content changes.
 
 ##### Example: Changing the Logical ID of a Lambda `DockerImageFunction`
@@ -203,7 +235,7 @@ Provide a new name for the docker tag.
 docker tag my_image_name:<this_is_my_image_name_tag_here> 241533140213.dkr.ecr.us-east-1.amazonaws.com/cdk-hnb659fds-container-assets-241533140213-us-east-1:<this_is_my_image_name_tag_here>
 ```
 
----
+***
 
 #### 4. Disable Metadata Attestations
 
@@ -259,28 +291,42 @@ const prepareDataFn = new cdk.aws_lambda.DockerImageFunction(
 );
 ```
 
----
+***
 
 ### Automating the Deployment
 
 Automate your deployment process using a package.json configuration to:
 
 - Automatically log into ECR
-- Automatically set DOCKER_BUILDKIT=1
+- Automatically set DOCKER\_BUILDKIT=1
 
 #### `package.json configuration`
 
-**Note: Example `package.json` [Works on mac/linux, uses `sh`]:**
+**Note: Example `package.json` \[Works on mac/linux, uses `sh`]:**
+
+<!--- @@inject-code: ../../package.json#lang=json --->
 
 ```json
 {
+  "name": "project-root",
+  "version": "0.0.1",
   "scripts": {
-    "predeploy": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "synth": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm run cdk synth -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
     "deploy": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm run cdk deploy -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
-    "destroy": "npm run cdk destroy -- -c stack_name=\"${STACK_NAME:-}\" --all"
+    "predeploy": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "destroy": "cd my_cdk_stacks && npm run cdk destroy -- -c stack_name=\"${STACK_NAME:-}\" --all",
+    "bootstrap": "CDK_VPC_ID=\"no-vpc-to-bootstrap\" STACK_NAME=\"stack_name_not_needed\" cd my_cdk_stacks && cdk bootstrap --cloudformation-execution-policies 'arn:aws:iam::aws:policy/PowerUserAccess,arn:aws:iam::aws:policy/IAMFullAccess'",
+    "synth.vpc": "cd my_cdk_stacks && npm install && npx cdk synth --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never",
+    "deploy.vpc": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm install && cdk deploy --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
+    "destroy.vpc": "npx cdk destroy --app \"npx ts-node src/vpc-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all",
+    "predeploy.moya.test": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
+    "deploy.moya.test": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm install && cdk deploy --all --require-approval never --app \"npx ts-node src/moya-test-stack.ts\" --context \"stack_name=${STACK_NAME}\"'",
+    "destroy.moya.test": "cd my_cdk_stacks && npx cdk destroy --app \"npx ts-node src/moya-test-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all"
   }
 }
 ```
+
+<!--- @@inject-end: ../../package.json#lang=json --->
 
 **CDK Deployment Command:**
 
@@ -288,75 +334,94 @@ Automate your deployment process using a package.json configuration to:
 BUILDKIT_PROGRESS=plain CDK_VPC_ID=vpc-09f66ffff5d2773de STACK_NAME=MoyaTestStack npm run deploy
 ```
 
----
+***
 
 ### Example Shell Script for Building and Pushing Docker Images to ECR
 
+<!--- @@inject-code: ../../scripts/build_and_push_docker_images_to_ecr.sh#lang=bash --->
+
 ```bash
-## Set variables
-IMAGE_NAME="moya_test_image"
-TAG="moya_test_image_tag"
+build_and_push_docker_images_to_ecr() {
+    region="us-east-1"
+    aws_output="json"
 
-REGION=$(aws configure get region --profile "${AWS_PROFILE}")
-ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+    # Parse command line arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+        --image-name)
+            image_name="$2"
+            shift 2
+            ;;
+        --tag)
+            tag="$2"
+            shift 2
+            ;;
+        --region)
+            region="$2"
+            shift 2
+            ;;
+        *)
+            echo "Error: Unknown parameter: $1"
+            return 1
+            ;;
+        esac
+    done
 
-REPOSITORY_NAME="cdk-hnb659fds-container-assets-${ACCOUNT_ID}-${REGION}"
+    # Set variables
+    image_name="moya_test_image"
+    tag="moya_test_image_tag"
 
-REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
-FULL_IMAGE_NAME="${REGISTRY}/${REPOSITORY_NAME}:${TAG}"
+    REGION=$(aws configure get region --profile "${AWS_PROFILE}")
+    ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
 
-echo "${FULL_IMAGE_NAME}"
+    REPOSITORY_NAME="cdk-hnb659fds-container-assets-${ACCOUNT_ID}-${REGION}"
 
-## Build, tag, and push the Docker image
+    REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+    FULL_IMAGE_NAME="${REGISTRY}/${REPOSITORY_NAME}:${tag}"
 
-echo "Building Docker image ${IMAGE_NAME}..."
+    echo "${FULL_IMAGE_NAME}"
 
-##ECR Issue Discussion - https://github.com/aws/aws-cdk/issues/31549
-docker build -t "${IMAGE_NAME}" --provenance=false .
+    # Build, tag, and push the Docker image
 
-echo "Tagging image as ${FULL_IMAGE_NAME}..."
-docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
+    echo "Building Docker image ${image_name}..."
 
-## Login to ECR
-echo "Logging into Amazon ECR..."
-aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${REGION}.amazonaws.com
+    #ECR Issue Discussion - https://github.com/aws/aws-cdk/issues/31549
+    docker build -t "${image_name}" --provenance=false .
 
-echo "Checking if repository ${REPOSITORY_NAME} exists in ECR..."
+    echo "tagging image as ${FULL_IMAGE_NAME}..."
+    docker tag "${image_name}" "${FULL_IMAGE_NAME}"
 
-## Use aws CLI to check if the repository exists
-if aws ecr describe-repositories \
-    --repository-names "${REPOSITORY_NAME}" \
-    --region "${REGION}" \
-    --profile "${AWS_PROFILE}" > /dev/null 2>&1; then
-    echo "Repository ${REPOSITORY_NAME} already exists."
-else
-    echo "Repository ${REPOSITORY_NAME} does not exist in ECR."
+    # Login to ECR
+    echo "Logging into Amazon ECR..."
+    aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${REGION}.amazonaws.com
+
+    echo "Checking if repository ${REPOSITORY_NAME} exists in ECR..."
+
+    # Use aws CLI to check if the repository exists
+    if aws ecr describe-repositories \
+        --repository-names "${REPOSITORY_NAME}" \
+        --region "${REGION}" \
+        --profile "${AWS_PROFILE}" >/dev/null 2>&1; then
+        echo "Repository ${REPOSITORY_NAME} already exists."
+    else
+        echo "Repository ${REPOSITORY_NAME} does not exist in ECR."
+    fi
+
+    echo "Pushing image to ECR..."
+    docker push "${FULL_IMAGE_NAME}"
+}
+
+# If the script is being run directly (not sourced), call the function
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    build_and_push_docker_images_to_ecr "$@"
 fi
-
-echo "Pushing image to ECR..."
-docker push "${FULL_IMAGE_NAME}"
 ```
 
----
+<!--- @@inject-end: ../../scripts/build_and_push_docker_images_to_ecr.sh#lang=bash --->
+
+***
 
 ### Example Code
-
-#### package.json
-
-```json
-{
-  "name": "project-root",
-  "version": "0.0.1",
-  "scripts": {
-    "deploy": "DOCKER_BUILDKIT=1 sh -c 'cd my_cdk_stacks && npm run cdk deploy -- -c stack_name=\"${STACK_NAME:-}\" --all --require-approval never'",
-    "predeploy": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
-    "destroy": "cd my_cdk_stacks && npm run cdk destroy -- -c stack_name=\"${STACK_NAME:-}\" --all",
-    "predeploy.moya.test": "aws ecr get-login-password | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com",
-    "deploy.moya.test": "DOCKER_BUILDKIT=1 sh -c 'echo \"moyas--$DOCKER_BUILDKIT\" && cd my_cdk_stacks && npm install && cdk deploy --all --require-approval never --app \"npx ts-node src/moya-test-stack.ts\" --context \"stack_name=${STACK_NAME}\"'",
-    "destroy.moya.test": "cd my_cdk_stacks && npx cdk destroy --app \"npx ts-node src/moya-test-stack.ts\" -c stack_name=\"${STACK_NAME:-}\" --all"
-  }
-}
-```
 
 #### NPM build Command
 
@@ -366,28 +431,34 @@ CDK_VPC_ID=vpc-09f66ffff5d2793de STACK_NAME=MoyaTestStack npm run deploy.moya.te
 
 #### DockerFile
 
-**directory:** etl/prepare_data/DockerFile
+**directory:** etl/prepare\_data/DockerFile
 
-```DockerFile
+<!--- @@inject-code: ../../backend/python/etl/prepare_data/Dockerfile#lang=bash --->
+
+```bash
 FROM public.ecr.aws/lambda/python:3.12
 
-## Set the working directory inside the container to Lambda's task root
+# Set the working directory inside the container to Lambda's task root
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-## Copy requirements.txt first to leverage Docker's layer caching
+# Copy requirements.txt first to leverage Docker's layer caching
 COPY requirements.txt .
 
-## Install the specified packages into the Lambda task root
+# Install the specified packages into the Lambda task root
 RUN pip3 install --target "${LAMBDA_TASK_ROOT}" -r requirements.txt --no-cache-dir
 
-## Copy the rest of the application code to the Lambda task root
+# Copy the rest of the application code to the Lambda task root
 COPY . .
 
-## Set the CMD to the Lambda handler
+# Set the CMD to the Lambda handler
 CMD [ "index.lambda_handler" ]
 ```
 
+<!--- @@inject-end: ../../backend/python/etl/prepare_data/Dockerfile#lang=bash --->
+
 #### moya-test-stack.ts
+
+<!--- @@inject-code: ../../my_cdk_stacks/src/moya-test-stack.ts#lang=typescript --->
 
 ```typescript
 import * as path from "path";
@@ -524,8 +595,9 @@ cdk.Aspects.of(app).add(
 app.synth();
 ```
 
-# Deploying The Demo App
+<!--- @@inject-end: ../../my_cdk_stacks/src/moya-test-stack.ts#lang=typescript --->
 
+# Deploying The Demo App
 
 <a name="02-deploying-the-demo-app01-readmemd"></a>
 
@@ -533,7 +605,7 @@ app.synth();
 
 Follow these steps to bootstrap, deploy, and manage the CDK application.
 
----
+***
 
 ### Notes:
 
@@ -541,7 +613,7 @@ Follow these steps to bootstrap, deploy, and manage the CDK application.
 - **Stack Naming**: Use consistent stack names to avoid deployment conflicts.
 - **Take Note**: Record any outputs from the deployment (e.g., VPC ID) for use in subsequent steps.
 
----
+***
 
 ### Step 1: Bootstrap the CDK Environment
 
@@ -551,7 +623,7 @@ Before deploying, bootstrap the CDK environment. Replace `STACK_NAME` with your 
 npm run deploy.bootstrap
 ```
 
----
+***
 
 ### Step 2: Deploy Demo Application
 
@@ -559,7 +631,7 @@ npm run deploy.bootstrap
 
 The Lambda function in this stack requires a VPC. You can either:
 
-1. **Create a VPC using the `vpc-stack.ts` file**:  
+1. **Create a VPC using the `vpc-stack.ts` file**:\
    Run the following command:
 
    ```bash
@@ -568,13 +640,13 @@ The Lambda function in this stack requires a VPC. You can either:
 
    - **Note**: After deployment, record the VPC ID from the CloudFormation output.
 
-2. **Use an existing VPC**:  
+1. **Use an existing VPC**:\
    If you already have a VPC, specify the VPC ID as an environment variable:
    ```bash
    CDK_VPC_ID=vpc-09d70cb4fca95244e npm run deploy.vpc
    ```
 
----
+***
 
 #### B. Deploy the Main Application
 
@@ -584,7 +656,7 @@ Deploy the main stack defined in `app.ts`. Replace `STACK_NAME` with the appropr
 CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=main npm run deploy
 ```
 
----
+***
 
 #### C. (Optional) Deploy the Test Stack
 
@@ -594,7 +666,7 @@ To deploy the test stack defined in `moya-test-stack.ts`, use the following comm
 CDK_VPC_ID=vpc-09d70cb4fca95244e STACK_NAME=MoyaTestStack npm run deploy.moya.test
 ```
 
----
+***
 
 ### Step 3: Destroy the Main Stack
 
@@ -604,4 +676,4 @@ To clean up and remove the main stack, specify the stack name during destruction
 CDK_VPC_ID=vpc-09d70cb4fca95244e cdk destroy main-app -c stack_name=main
 ```
 
----
+***

@@ -24,6 +24,7 @@
     "eslint": "^9.15.0",
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-import": "^2.31.0",
+    "inject-markdown": "^3.1.4",
     "typescript": "^5.6.3"
   }
 }
